@@ -1,13 +1,11 @@
 import { useRouter } from "next/router";
-import React from "react";
-import useSWR from "swr";
+import React, { useState } from "react";
+import { useSWRInfinite } from "swr";
 
 import ArticlePreview from "./ArticlePreview";
 import ErrorMessage from "../common/ErrorMessage";
 import LoadingSpinner from "../common/LoadingSpinner";
-import Maybe from "../common/Maybe";
-import Pagination from "../common/Pagination";
-import { usePageState } from "../../lib/context/PageContext";
+// import usePagination from "../common/Pagination";
 import {
   usePageCountState,
   usePageCountDispatch,
@@ -15,49 +13,58 @@ import {
 import useViewport from "../../lib/hooks/useViewport";
 import { SERVER_BASE_URL, DEFAULT_LIMIT } from "../../lib/utils/constant";
 import fetcher from "../../lib/utils/fetcher";
+import { useInView } from "react-intersection-observer";
+import { getPageInfo } from "lib/utils/calculatePagination";
 
-const ArticleList = () => {
-  const page = usePageState();
-  const pageCount = usePageCountState();
-  const setPageCount = usePageCountDispatch();
-  const lastIndex =
-    pageCount > 480 ? Math.ceil(pageCount / 20) : Math.ceil(pageCount / 20) - 1;
-
-  const { vw } = useViewport();
-  const router = useRouter();
+const getFetchURL = (router) => {
+  let fetchURL = `${SERVER_BASE_URL}/articles?limit=5&offset=`;
   const { asPath, pathname, query } = router;
   const { favorite, follow, tag, pid } = query;
 
   const isProfilePage = pathname.startsWith(`/profile`);
-
-  let fetchURL = `${SERVER_BASE_URL}/articles?offset=${page * DEFAULT_LIMIT}`;
-
   switch (true) {
     case !!tag:
-      fetchURL = `${SERVER_BASE_URL}/articles${asPath}&offset=${
-        page * DEFAULT_LIMIT
-      }`;
+      fetchURL = `${SERVER_BASE_URL}/articles${asPath}&limit=5&offset=`;
       break;
     case isProfilePage && !!favorite:
       fetchURL = `${SERVER_BASE_URL}/articles?favorited=${encodeURIComponent(
         String(pid)
-      )}&offset=${page * DEFAULT_LIMIT}`;
+      )}&limit=5&offset=`;
       break;
     case isProfilePage && !favorite:
       fetchURL = `${SERVER_BASE_URL}/articles?author=${encodeURIComponent(
         String(pid)
-      )}&offset=${page * DEFAULT_LIMIT}`;
+      )}&limit=5&offset=`;
       break;
     case !isProfilePage && !!follow:
-      fetchURL = `${SERVER_BASE_URL}/articles/feed?offset=${
-        page * DEFAULT_LIMIT
-      }`;
+      fetchURL = `${SERVER_BASE_URL}/articles/feed?limit=5&offset=`;
       break;
     default:
       break;
   }
+  return fetchURL;
+};
 
-  const { data, error } = useSWR(fetchURL, fetcher);
+const ArticleList = () => {
+  const [page, setPage] = useState(0);
+  const router = useRouter();
+  const pageCount = usePageCountState();
+  const setPageCount = usePageCountDispatch();
+  const { ref: bottomRef, inView: bottomInView } = useInView();
+  let fetchURL = getFetchURL(router);
+
+  const getKey = (page: number, data: any) => {
+    let url: string;
+    if (data) {
+      url = `${fetchURL}${page * 5}`;
+    } else {
+      url = `${fetchURL}0`;
+    }
+    return url;
+  };
+
+  //@ts-ignore
+  const { data, error, size, setSize } = useSWRInfinite(getKey, fetcher);
 
   if (error) {
     return (
@@ -70,31 +77,30 @@ const ArticleList = () => {
     );
   }
 
-  if (!data) return <LoadingSpinner />;
+  if (data === undefined) return <LoadingSpinner />;
 
-  const { articles, articlesCount } = data;
-  setPageCount(articlesCount);
+  // const { hasNextPage } = getPageInfo({
+  //   limit: DEFAULT_LIMIT,
+  //   pageCount,
+  //   total: data[0].articlesCount, // TODO: use the last page's count.
+  //   page: page,
+  // });
+  console.log({ data });
+  const hasNextPage = data[0].articlesCount > size * 5;
 
-  if (articles && articles.length === 0) {
-    return <div className="article-preview">No articles are here... yet.</div>;
+  if (bottomInView && hasNextPage) {
+    console.log(`setting size: ${size + 1}`);
+    setSize(size + 1);
   }
 
   return (
     <>
-      {articles?.map((article) => (
-        <ArticlePreview key={article.slug} article={article} />
-      ))}
-
-      <Maybe test={articlesCount && articlesCount > 20}>
-        <Pagination
-          total={pageCount}
-          limit={20}
-          pageCount={vw >= 768 ? 10 : 5}
-          currentPage={page}
-          lastIndex={lastIndex}
-          fetchURL={fetchURL}
-        />
-      </Maybe>
+      {data.map(({ articles }) => {
+        return articles?.map((article) => (
+          <ArticlePreview key={article.slug} article={article} />
+        ));
+      })}
+      {hasNextPage && <div ref={bottomRef} />}
     </>
   );
 };
