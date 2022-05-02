@@ -114,7 +114,7 @@ const ArticlePreview = ({ article }) => {
       >
         <h1>{preview.title}</h1>
         <p>{preview.description}</p>
-        <span>Read more...</span>
+        <span style={{fontSize: "1.2em"}}>Read more...</span>
         <ul className="tag-list" style={{ maxWidth: "100%" }}>
           {preview.tagList.map((tag, index) => {
             return (
