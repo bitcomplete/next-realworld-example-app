@@ -1,0 +1,8 @@
+.nav-style {
+  background-color: grey;
+  border: 2px solid #5cb85c;
+}
+
+.nav-pills, .nav-link {
+  border-radius: 0 !important;
+}

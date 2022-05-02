@@ -18,19 +18,19 @@ const TabList = () => {
 
   if (!isLoggedIn) {
     return (
-      <ul className="nav nav-pills outline-active">
-        <li className="nav-item">
+      <ul className="nav nav-pills">
+        <li className="nav-item nav-style">
           <NavLink href="/" as="/">
             Global Feed
           </NavLink>
         </li>
 
         <Maybe test={!!tag}>
-          <li className="nav-item">
+          <li className="nav-item nav-style">
             <CustomLink
               href={`/?tag=${tag}`}
               as={`/?tag=${tag}`}
-              className="nav-link active"
+              className="nav-link nav-style"
             >
               <i className="ion-pound" /> {tag}
             </CustomLink>
@@ -41,8 +41,8 @@ const TabList = () => {
   }
 
   return (
-    <ul className="nav nav-pills outline-active">
-      <li className="nav-item">
+    <ul className="nav nav-pills">
+      <li className="nav-item nav-style">
         <NavLink
           href={`/?follow=${currentUser?.username}`}
           as={`/?follow=${currentUser?.username}`}
@@ -51,7 +51,7 @@ const TabList = () => {
         </NavLink>
       </li>
 
-      <li className="nav-item">
+      <li className="nav-item nav-style">
         <NavLink href="/" as="/">
           Global Feed
         </NavLink>
@@ -62,7 +62,7 @@ const TabList = () => {
           <CustomLink
             href={`/?tag=${tag}`}
             as={`/?tag=${tag}`}
-            className="nav-link active"
+            className="nav-link"
           >
             <i className="ion-pound" /> {tag}
           </CustomLink>
