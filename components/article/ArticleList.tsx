@@ -3,6 +3,7 @@ import React from "react";
 import useSWR from "swr";
 
 import ArticlePreview from "./ArticlePreview";
+import ArticlePreviewProfile from "./ArticlePreviewProfile/ArticlePreviewProfile";
 import ErrorMessage from "../common/ErrorMessage";
 import LoadingSpinner from "../common/LoadingSpinner";
 import Maybe from "../common/Maybe";
@@ -16,7 +17,7 @@ import useViewport from "../../lib/hooks/useViewport";
 import { SERVER_BASE_URL, DEFAULT_LIMIT } from "../../lib/utils/constant";
 import fetcher from "../../lib/utils/fetcher";
 
-const ArticleList = () => {
+const ArticleList = ({isProfile}) => {
   const page = usePageState();
   const pageCount = usePageCountState();
   const setPageCount = usePageCountDispatch();
@@ -82,6 +83,7 @@ const ArticleList = () => {
   return (
     <>
       {articles?.map((article) => (
+        isProfile ? <ArticlePreviewProfile key={article.slug} article={article} /> :
         <ArticlePreview key={article.slug} article={article} />
       ))}
 

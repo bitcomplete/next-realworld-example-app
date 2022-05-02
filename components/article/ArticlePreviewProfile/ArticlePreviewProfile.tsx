@@ -4,12 +4,12 @@ import Router from "next/router";
 import React from "react";
 import useSWR from "swr";
 
-import CustomLink from "../common/CustomLink";
-import CustomImage from "../common/CustomImage";
-import { usePageDispatch } from "../../lib/context/PageContext";
-import checkLogin from "../../lib/utils/checkLogin";
-import { SERVER_BASE_URL } from "../../lib/utils/constant";
-import storage from "../../lib/utils/storage";
+import CustomLink from "../../common/CustomLink";
+import CustomImage from "../../common/CustomImage";
+import { usePageDispatch } from "../../../lib/context/PageContext";
+import checkLogin from "../../../lib/utils/checkLogin";
+import { SERVER_BASE_URL } from "../../../lib/utils/constant";
+import storage from "../../../lib/utils/storage";
 
 const FAVORITED_CLASS = "btn btn-sm btn-primary";
 const NOT_FAVORITED_CLASS = "btn btn-sm btn-outline-primary";
@@ -70,7 +70,7 @@ const ArticlePreview = ({ article }) => {
   if (!article) return;
 
   return (
-    <div className="article-preview" style={{ padding: "1.5rem 0.5rem" }}>
+    <div className="article-preview article-container" style={{ padding: "1.5rem 0.5rem" }}>
       <div className="article-meta">
         <CustomLink
           href="/profile/[pid]"
@@ -79,6 +79,7 @@ const ArticlePreview = ({ article }) => {
           <CustomImage
             src={preview.author.image}
             alt="author's profile image"
+            className="article-profile-img"
           />
         </CustomLink>
 
@@ -86,24 +87,13 @@ const ArticlePreview = ({ article }) => {
           <CustomLink
             href="/profile/[pid]"
             as={`/profile/${preview.author.username}`}
-            className="author"
+            className="author author-style"
           >
             <span onClick={() => setPage(0)}>{preview.author.username}</span>
           </CustomLink>
-          <span className="date">
+          <span className="date text-style">
             {new Date(preview.createdAt).toDateString()}
           </span>
-        </div>
-
-        <div className="pull-xs-right">
-          <button
-            className={
-              preview.favorited ? FAVORITED_CLASS : NOT_FAVORITED_CLASS
-            }
-            onClick={() => handleClickFavorite(preview.slug)}
-          >
-            <i className="ion-heart" /> {preview.favoritesCount}
-          </button>
         </div>
       </div>
 
@@ -114,13 +104,23 @@ const ArticlePreview = ({ article }) => {
       >
         <h1>{preview.title}</h1>
         <p>{preview.description}</p>
-        <span style={{fontSize: "1.2em"}}>Read more...</span>
+        <span>Read more...</span>
+        <div className="pull-xs-right">
+          <button
+            className={
+              preview.favorited ? FAVORITED_CLASS : NOT_FAVORITED_CLASS
+            }
+            onClick={() => handleClickFavorite(preview.slug)}
+          >
+            <i className="ion-heart" /> {preview.favoritesCount}
+          </button>
+        </div>
         <ul className="tag-list" style={{ maxWidth: "100%" }}>
           {preview.tagList.map((tag, index) => {
             return (
               <Link href={`/?tag=${tag}`} as={`/?tag=${tag}`} key={index}>
                 <li
-                  className="tag-default tag-pill tag-outline"
+                  className="tag-default tag-pill tag-outline tag-style"
                   onClick={(e) => e.stopPropagation()}
                   onMouseOver={() => {
                     setHover(true);
@@ -149,6 +149,7 @@ const ArticlePreview = ({ article }) => {
             );
           })}
         </ul>
+        
       </CustomLink>
     </div>
   );
